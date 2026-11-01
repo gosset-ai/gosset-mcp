@@ -1,0 +1,20 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.gosset-ai/gosset",
+  "title": "Gosset",
+  "description": "Pharma intelligence: source-linked drug, trial, result, patent, company and deal research.",
+  "version": "1.0.0",
+  "websiteUrl": "https://gosset.ai/mcp-api",
+  "icons": [
+    {
+      "src": "https://gosset.ai/favicon.png",
+      "mimeType": "image/png"
+    }
+  ],
+  "remotes": [
+    {
+      "type": "streamable-http",
+      "url": "https://mcp.gosset.ai/mcp"
+    }
+  ]
+}

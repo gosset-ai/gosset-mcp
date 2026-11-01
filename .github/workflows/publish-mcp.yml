@@ -1,0 +1,41 @@
+name: Publish to MCP Registry
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      MCP_PUBLISHER_VERSION: v1.8.7
+    steps:
+      - name: Check out public metadata
+        uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - name: Install cosign
+        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
+      - name: Download and verify the official publisher
+        shell: bash
+        run: |
+          set -euo pipefail
+          publisher_archive=mcp-publisher_linux_amd64.tar.gz
+          publisher_release_url="https://github.com/modelcontextprotocol/registry/releases/download/${MCP_PUBLISHER_VERSION}"
+          curl --fail --location --silent --show-error --output "$publisher_archive" "$publisher_release_url/$publisher_archive"
+          curl --fail --location --silent --show-error --output "$publisher_archive.sigstore.json" "$publisher_release_url/$publisher_archive.sigstore.json"
+          cosign verify-blob \
+            --bundle "$publisher_archive.sigstore.json" \
+            --certificate-identity "https://github.com/modelcontextprotocol/registry/.github/workflows/release.yml@refs/tags/${MCP_PUBLISHER_VERSION}" \
+            --certificate-oidc-issuer "https://token.actions.githubusercontent.com" \
+            "$publisher_archive"
+          tar xzf "$publisher_archive" mcp-publisher
+      - name: Validate public metadata
+        run: ./mcp-publisher validate server.json
+      - name: Authenticate with GitHub Actions OIDC
+        run: ./mcp-publisher login github-oidc
+      - name: Publish Gosset
+        run: ./mcp-publisher publish server.json
